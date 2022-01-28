@@ -9,11 +9,19 @@
   </head>
   <body>
     <p>Simple Dapp</p>
+    <p>Your Account: <span id="accountSpan"></span></p>
+    <p>Your Balance: <span id="balanceSpan"></span></p>
     <button onclick="connectToMetaMask()">Connect to MetaMask</button>
     <button onclick="getTokenSymbol()">Get Token Symbol</button>
     <button onclick="getDecimals()">Get Decimals</button>
     <button onclick="getTokenName()">Get Token Name</button>
+    <button onclick="getTokenBalance()">Get Balance</button>
+    <br />
+    <br />
+
+    <input type="number" id="amountInput" placeholder="Enter Your Amount" />
     <button onclick="transferTokens()">Transfer</button>
+
     <script>
       const web3 = new Web3(window.ethereum);
       var MyAccount;
@@ -276,6 +284,8 @@
             .request({ method: "eth_requestAccounts" })
             .then((result) => {
               MyAccount = result[0];
+              document.getElementById("accountSpan").innerHTML = MyAccount;
+
               console.log("Current Account", MyAccount);
             });
         } else {
@@ -285,7 +295,7 @@
 
       const tokenContract = new web3.eth.Contract(
         contractABI,
-        "0xb0B8A18a6F040509Ed15D1db2984702DE3D77C0F"
+        "0x213d5c070Da4CF783a33781EbDDf4Ba1D350b036"
       );
       const getTokenSymbol = async () => {
         const result = await tokenContract.methods.symbol().call();
@@ -303,11 +313,18 @@
       };
 
       const transferTokens = async () => {
-        const amount = await web3.utils.toWei("1000", "ether");
+        const value = document.getElementById("amountInput").value;
+        const amount = await web3.utils.toWei(value.toString(), "ether");
         console.log("Amount: ", amount);
         const result = await tokenContract.methods
           .transfer("0x49094CF3b26E18bF31405156B8e844682A797746", amount)
           .send({ from: MyAccount });
+      };
+
+      const getTokenBalance = async () => {
+        const result = await tokenContract.methods.balanceOf(MyAccount).call();
+        console.log("Your balance is :", result);
+        document.getElementById("balanceSpan").innerHTML = result;
       };
     </script>
   </body>
