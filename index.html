@@ -11,6 +11,7 @@
     <p>Simple Dapp</p>
     <p>Your Account: <span id="accountSpan"></span></p>
     <p>Your Balance: <span id="balanceSpan"></span></p>
+    <p>Allowance: <span id="allowanceSpan"></span></p>
     <button onclick="connectToMetaMask()">Connect to MetaMask</button>
     <button onclick="getTokenSymbol()">Get Token Symbol</button>
     <button onclick="getDecimals()">Get Decimals</button>
@@ -20,7 +21,38 @@
     <br />
 
     <input type="number" id="amountInput" placeholder="Enter Your Amount" />
+    <input
+      type="text"
+      id="addressInput"
+      placeholder="Enter Address to Transfer"
+    />
     <button onclick="transferTokens()">Transfer</button>
+    <br />
+    <br />
+    <input type="number" id="amountInput2" placeholder="Enter Your Amount" />
+    <input
+      type="text"
+      id="addressInput2"
+      placeholder="Enter Address to Approve"
+    />
+    <button onclick="approveTokens()">Approve</button>
+
+    <br />
+    <br />
+    <input type="text" id="addressInput3" placeholder="Enter Owner Address" />
+    <input
+      type="text"
+      id="addressInput4"
+      placeholder="Enter Delegate Address"
+    />
+    <button onclick="checkAllowance()">CheckAllowance</button>
+
+    <br />
+    <br />
+    <input type="text" id="ownerAddress" placeholder="Enter Owner Address" />
+    <input type="text" id="buyerAddress" placeholder="Enter Buyer Address" />
+    <input type="number" id="numTokens" placeholder="Enter Your Amount" />
+    <button onclick="transferTokensFrom()">TransferFrom</button>
 
     <script>
       const web3 = new Web3(window.ethereum);
@@ -295,7 +327,7 @@
 
       const tokenContract = new web3.eth.Contract(
         contractABI,
-        "0x213d5c070Da4CF783a33781EbDDf4Ba1D350b036"
+        "0xFA499FdC14c0e45A973BE01E1D6325F40dcbc7d1"
       );
       const getTokenSymbol = async () => {
         const result = await tokenContract.methods.symbol().call();
@@ -314,11 +346,50 @@
 
       const transferTokens = async () => {
         const value = document.getElementById("amountInput").value;
+        document.getElementById("amountInput").value = 0;
         const amount = await web3.utils.toWei(value.toString(), "ether");
-        console.log("Amount: ", amount);
+        const recieverAddres = document.getElementById("addressInput").value;
+        document.getElementById("addressInput").value = " ";
+        console.log("Transfer to: ", recieverAddres + " " + amount);
         const result = await tokenContract.methods
-          .transfer("0x49094CF3b26E18bF31405156B8e844682A797746", amount)
+          .transfer(recieverAddres, amount)
           .send({ from: MyAccount });
+      };
+
+      const approveTokens = async () => {
+        const value = document.getElementById("amountInput2").value;
+        const amount = await web3.utils.toWei(value.toString(), "ether");
+        const recieverAddress = document.getElementById("addressInput2").value;
+        console.log("Approve to: ", recieverAddress + " " + amount);
+        const result = await tokenContract.methods
+          .approve(recieverAddress, amount)
+          .send({ from: MyAccount });
+        document.getElementById("amountInput2").value = 0;
+        document.getElementById("addressInput2").value = "";
+      };
+
+      const checkAllowance = async () => {
+        const ownerAddress = document.getElementById("addressInput3").value;
+        const delegateAddress = document.getElementById("addressInput4").value;
+        const result = await tokenContract.methods
+          .allowance(ownerAddress, delegateAddress)
+          .call();
+        document.getElementById("allowanceSpan").innerHTML = result;
+        document.getElementById("addressInput3").value = "";
+        document.getElementById("addressInput4").value = "";
+      };
+
+      const transferTokensFrom = async () => {
+        const ownerAddress = document.getElementById("ownerAddress").value;
+        const buyerAddress = document.getElementById("buyerAddress").value;
+        const value = document.getElementById("numTokens").value;
+        const amount = await web3.utils.toWei(value.toString(), "ether");
+        const result = await tokenContract.methods
+          .transferFrom(ownerAddress, buyerAddress, amount)
+          .send({ from: MyAccount });
+        document.getElementById("ownerAddress").value = "";
+        document.getElementById("buyerAddress").value = "";
+        document.getElementById("numTokens").value = 0;
       };
 
       const getTokenBalance = async () => {
